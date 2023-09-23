@@ -1,5 +1,7 @@
 package com.credibanco.Test.service.impl;
 
+import com.credibanco.Test.exceptions.DataBaseException;
+import com.credibanco.Test.exceptions.NotFoundException;
 import com.credibanco.Test.model.dao.CardDao;
 import com.credibanco.Test.model.dao.ProductTypeDao;
 import com.credibanco.Test.model.dao.StatusDao;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 
 import static com.credibanco.Test.util.Constant.ACTIVO;
 import static com.credibanco.Test.util.Constant.BLOQUEAR;
+import static com.credibanco.Test.util.Constant.ERROR_SAVE;
 import static com.credibanco.Test.util.Constant.INACTIVO;
 
 @Service
@@ -42,11 +45,10 @@ public class CardServiceImpl implements CardService {
         String userNameFromToken = utils.getTokenFromRequest(request);
 
         UserDao user = userRepository.findByUsername(userNameFromToken)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist user"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist user"));
         ProductTypeDao productTypeDao = productTypeRepository.findByCode(productDto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Doesn't exist product"));
-        StatusDao statusDao = statusRepository.findByStatus(INACTIVO)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist product"));
+        StatusDao statusDao = getStatusDao(INACTIVO);
 
         Long newNumberCard = utils.findNewCardNumber(productDto.getProductId());
 
@@ -64,33 +66,31 @@ public class CardServiceImpl implements CardService {
                     .cardId(String.valueOf(cardSaved.getNumberCard()))
                     .build();
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
     @Override
     public void enrollCard(CardDto cardDto) {
         CardDao cardDao = findCard(cardDto.getCardId());
-        StatusDao statusDao = statusRepository.findByStatus(ACTIVO)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+        StatusDao statusDao = getStatusDao(ACTIVO);
         cardDao.setStatus(statusDao);
         try {
             cardRepository.save(cardDao);
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
     @Override
     public void blockCard(CardDto cardDto) {
         CardDao cardDao = findCard(cardDto.getCardId());
-        StatusDao statusDao = statusRepository.findByStatus(BLOQUEAR)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+        StatusDao statusDao = getStatusDao(BLOQUEAR);
         cardDao.setStatus(statusDao);
         try {
             cardRepository.save(cardDao);
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
@@ -105,7 +105,7 @@ public class CardServiceImpl implements CardService {
         try {
             cardRepository.save(cardDao);
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
@@ -119,6 +119,11 @@ public class CardServiceImpl implements CardService {
 
     private CardDao findCard(String cardId) {
         return cardRepository.findByNumberCard(Long.valueOf(cardId))
-                .orElseThrow(() -> new RuntimeException("Doesn't exist card number"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist card number"));
+    }
+
+    private StatusDao getStatusDao(String status) {
+        return statusRepository.findByStatus(status)
+                .orElseThrow(() -> new NotFoundException("Doesn't exist status"));
     }
 }

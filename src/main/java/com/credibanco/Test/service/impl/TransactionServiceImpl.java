@@ -1,5 +1,7 @@
 package com.credibanco.Test.service.impl;
 
+import com.credibanco.Test.exceptions.DataBaseException;
+import com.credibanco.Test.exceptions.NotFoundException;
 import com.credibanco.Test.model.dao.CardDao;
 import com.credibanco.Test.model.dao.StatusDao;
 import com.credibanco.Test.model.dao.StatusTransactionDao;
@@ -23,6 +25,7 @@ import java.util.Date;
 import static com.credibanco.Test.util.Constant.ACTIVO;
 import static com.credibanco.Test.util.Constant.ANULADA;
 import static com.credibanco.Test.util.Constant.APROBADO;
+import static com.credibanco.Test.util.Constant.ERROR_SAVE;
 import static com.credibanco.Test.util.Constant.NEGADO;
 
 @Service
@@ -40,11 +43,10 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionDto purchaseCard(PurchaseDto purchaseDto) {
 
         CardDao cardDao = findCard(purchaseDto.getCardId());
-        StatusDao statusDao = statusRepository.findByStatus(ACTIVO)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+        StatusDao statusDao = getStatusDao();
 
         try {
-            boolean isTransactionDenied = (!(cardDao.getStatus() == statusDao)
+            boolean isTransactionDenied = (!(cardDao.getStatus().getStatus().equals(statusDao.getStatus()))
                     || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
                     || (purchaseDto.getPrice().compareTo(cardDao.getAmount()) >= 0));
 
@@ -60,17 +62,16 @@ public class TransactionServiceImpl implements TransactionService {
 
             return getTransactionDto(purchaseDto, savedTransaction);
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
     @Override
     public void anulationPurchaseCard(TransactionDto transactionDto) {
         CardDao cardDao = findCard(transactionDto.getCardId());
-        StatusDao statusDao = statusRepository.findByStatus(ACTIVO)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+        StatusDao statusDao = getStatusDao();
         TransactionDao transactionDaoActive = transactionRepository.findByTransactionIdAndStatusTransactionDaoStatus(transactionDto.getTransactionId(), APROBADO)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist transaction"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist transaction"));
         try {
             boolean isTransactionVoidable = (!(cardDao.getStatus() == statusDao)
                     || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
@@ -86,14 +87,14 @@ public class TransactionServiceImpl implements TransactionService {
             transactionRepository.save(transactionDaoActive);
 
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 
     @Override
     public TransactionDetailsDto getTransactionId(String transactionId) {
         TransactionDao transactionDao = transactionRepository.findByTransactionId(transactionId)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist transaction"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist transaction"));
         return TransactionDetailsDto.builder()
                 .cardId(String.valueOf(transactionDao.getCardDaoSet().getNumberCard()))
                 .transactionId(transactionDao.getTransactionId())
@@ -124,13 +125,18 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
+    private StatusDao getStatusDao() {
+        return statusRepository.findByStatus(ACTIVO)
+                .orElseThrow(() -> new NotFoundException("Doesn't exist status"));
+    }
+
     private StatusTransactionDao getStatusTransactionDao(String status) {
         return statusTransactionRepository.findByStatus(status)
-                .orElseThrow(() -> new RuntimeException("Doesn't exist status"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist status"));
     }
 
     private CardDao findCard(String cardId) {
         return cardRepository.findByNumberCard(Long.valueOf(cardId))
-                .orElseThrow(() -> new RuntimeException("Doesn't exist card number"));
+                .orElseThrow(() -> new NotFoundException("Doesn't exist card number"));
     }
 }

@@ -1,6 +1,5 @@
 package com.credibanco.Test.controller;
 
-import com.credibanco.Test.model.dto.CardDto;
 import com.credibanco.Test.model.dto.PurchaseDto;
 import com.credibanco.Test.model.dto.TransactionDetailsDto;
 import com.credibanco.Test.model.dto.TransactionDto;

@@ -8,5 +8,6 @@ public interface TransactionService {
     TransactionDto purchaseCard(PurchaseDto purchaseDto);
 
     void anulationPurchaseCard(TransactionDto transactionDto);
+
     TransactionDetailsDto getTransactionId(String transactionId);
 }

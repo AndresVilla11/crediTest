@@ -7,17 +7,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static com.credibanco.Test.util.Constant.ERROR_DTO;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRefresh {
 
-    @NotBlank
+    @NotBlank(message = "User name" + ERROR_DTO)
     @JsonProperty(value = "user_name")
     private String userName;
 
-    @NotBlank
+    @NotBlank(message = "Identification number" + ERROR_DTO)
     @JsonProperty(value = "identification_number")
     private String identificationNumber;
 }

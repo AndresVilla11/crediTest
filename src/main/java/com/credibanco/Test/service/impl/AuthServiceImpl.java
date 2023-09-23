@@ -1,5 +1,6 @@
 package com.credibanco.Test.service.impl;
 
+import com.credibanco.Test.exceptions.BadRequestException;
 import com.credibanco.Test.jwt.JwtService;
 import com.credibanco.Test.model.auth.AuthResponse;
 import com.credibanco.Test.model.auth.Role;
@@ -45,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
                 .anyMatch(userFind -> BCrypt.checkpw(userRegister.getIdentificationNumber(), userFind.getIdentificationNumber()));
 
         if (userNotExist) {
-            throw new RuntimeException("User exist!");
+            throw new BadRequestException("User exist!");
         }
 
         UserDao userDao = UserDao.builder()

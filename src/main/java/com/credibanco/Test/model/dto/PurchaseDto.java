@@ -11,6 +11,9 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 
+import static com.credibanco.Test.util.Constant.ERROR_AMOUNT_DTO;
+import static com.credibanco.Test.util.Constant.ERROR_DTO;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
@@ -18,8 +21,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PurchaseDto extends CardDto {
 
-    @NotNull
-    @DecimalMin(value = "0", inclusive = false)
+    @NotNull(message = "Price" + ERROR_DTO)
+    @DecimalMin(value = "0", inclusive = false, message = "Price" + ERROR_AMOUNT_DTO)
     @JsonProperty(value = "price")
     private BigDecimal price;
 }

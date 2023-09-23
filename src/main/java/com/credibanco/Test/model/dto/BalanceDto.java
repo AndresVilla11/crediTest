@@ -7,12 +7,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static com.credibanco.Test.util.Constant.ERROR_DTO;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class BalanceDto {
-    @NotBlank
+    @NotBlank(message = "Balance" + ERROR_DTO)
     @JsonProperty(value = "balance")
     private String balance;
 }

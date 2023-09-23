@@ -9,4 +9,10 @@ public class Constant {
     public static final String APROBADO = "aprobado";
     public static final String NEGADO = "negado";
     public static final String ANULADA = "anulada";
+    public static final String ERROR_DTO = " should not be empty.";
+    public static final String ERROR_SAVE = "Error saving information ";
+    public static final String ERROR_AMOUNT_DTO = " must be greater than 0.";
+    public static final int DESIRED_LENGTH = 16;
+    public static final String ERROR_LENGTH = "It must be " + DESIRED_LENGTH + " digits";
+
 }

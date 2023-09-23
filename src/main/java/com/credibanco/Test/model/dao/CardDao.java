@@ -22,6 +22,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
+import static com.credibanco.Test.util.Constant.ERROR_AMOUNT_DTO;
+import static com.credibanco.Test.util.Constant.ERROR_LENGTH;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -35,14 +38,14 @@ public class CardDao {
     private Long id;
 
     @Column(length = 16, name = "number_card")
-    @Digits(integer = 16, fraction = 0)
+    @Digits(integer = 16, fraction = 0, message = "Number card " + ERROR_LENGTH)
     private Long numberCard;
 
     @Column(name = "expiration_date")
     private LocalDate expirationDate;
 
     @Column(name = "amount")
-    @DecimalMin(value = "0.00")
+    @DecimalMin(value = "0.00", message = "Amount" + ERROR_AMOUNT_DTO)
     private BigDecimal amount;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "cardDaoSet", cascade = CascadeType.ALL)

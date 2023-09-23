@@ -41,3 +41,26 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					'com/credibanco/Test/config/**',
+					'com/credibanco/Test/model/**',
+					'com/credibanco/Test/jwt/**',
+					'com/credibanco/Test/exceptions/**',
+					'com/credibanco/Test/validator/**',
+					'com/credibanco/Test/util/Constant**',
+			])
+		}))
+	}
+}
+test.finalizedBy jacocoTestReport
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import static com.credibanco.Test.util.Constant.ERROR_DTO;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
@@ -16,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class CardRechargeDto extends CardDto {
 
-    @NotBlank
+    @NotBlank(message = "Balance" + ERROR_DTO)
     @JsonProperty(value = "balance")
     @GreaterThanZero
     private String balance;
