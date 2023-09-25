@@ -1,6 +1,8 @@
 package com.credibanco.Test.service.impl;
 
 import com.credibanco.Test.exceptions.BadRequestException;
+import com.credibanco.Test.exceptions.DataBaseException;
+import com.credibanco.Test.exceptions.NotFoundException;
 import com.credibanco.Test.jwt.JwtService;
 import com.credibanco.Test.model.auth.AuthResponse;
 import com.credibanco.Test.model.auth.Role;
@@ -15,6 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import static com.credibanco.Test.util.Constant.ERROR_REFRESH;
+import static com.credibanco.Test.util.Constant.ERROR_SAVE;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -27,13 +32,16 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(UserRefresh userRefresh) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userRefresh.getUserName(), userRefresh.getIdentificationNumber()));
-            UserDao userDetails = userRepository.findByUsername(userRefresh.getUserName()).orElseThrow();
+            UserDao userDetails = userRepository.findByUsername(userRefresh.getUserName())
+                    .orElseThrow(() -> new NotFoundException("Doesn't exist user"));
             final String token = jwtService.getToken(userDetails);
             return AuthResponse.builder()
                     .token(token)
                     .build();
+        } catch (NotFoundException exception) {
+            throw exception;
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new RuntimeException(ERROR_REFRESH);
         }
     }
 
@@ -61,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
                     .token(jwtService.getToken(savedUser))
                     .build();
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new DataBaseException(ERROR_SAVE);
         }
     }
 }

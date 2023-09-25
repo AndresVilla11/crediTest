@@ -45,21 +45,21 @@ public class TransactionServiceImpl implements TransactionService {
         CardDao cardDao = findCard(purchaseDto.getCardId());
         StatusDao statusDao = getStatusDao();
 
+
+        boolean isTransactionDenied = (!(cardDao.getStatus().getStatus().equals(statusDao.getStatus()))
+                || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
+                || (purchaseDto.getPrice().compareTo(cardDao.getAmount()) >= 0));
+
+        BigDecimal transactionAmount = purchaseDto.getPrice();
+        String transactionStatus = isTransactionDenied ? NEGADO : APROBADO;
+
+        if (!isTransactionDenied) {
+            cardDao.setAmount(cardDao.getAmount().subtract(transactionAmount));
+        }
+
+        TransactionDao transactionDao = getTransactionDao(cardDao, transactionStatus, transactionAmount);
         try {
-            boolean isTransactionDenied = (!(cardDao.getStatus().getStatus().equals(statusDao.getStatus()))
-                    || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
-                    || (purchaseDto.getPrice().compareTo(cardDao.getAmount()) >= 0));
-
-            BigDecimal transactionAmount = purchaseDto.getPrice();
-            String transactionStatus = isTransactionDenied ? NEGADO : APROBADO;
-
-            if (!isTransactionDenied) {
-                cardDao.setAmount(cardDao.getAmount().subtract(transactionAmount));
-            }
-
-            TransactionDao transactionDao = getTransactionDao(cardDao, transactionStatus, transactionAmount);
             TransactionDao savedTransaction = transactionRepository.save(transactionDao);
-
             return getTransactionDto(purchaseDto, savedTransaction);
         } catch (Exception exception) {
             throw new DataBaseException(ERROR_SAVE);
@@ -72,20 +72,19 @@ public class TransactionServiceImpl implements TransactionService {
         StatusDao statusDao = getStatusDao();
         TransactionDao transactionDaoActive = transactionRepository.findByTransactionIdAndStatusTransactionDaoStatus(transactionDto.getTransactionId(), APROBADO)
                 .orElseThrow(() -> new NotFoundException("Doesn't exist transaction"));
+        boolean isTransactionVoidable = (!(cardDao.getStatus().getStatus().equals(statusDao.getStatus()))
+                || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
+                || (isDateCompareForAnnulation(transactionDaoActive.getCreationDateTime())));
+
+        BigDecimal transactionAmount = transactionDaoActive.getAmountTransaction();
+        String transactionStatus = isTransactionVoidable ? APROBADO : ANULADA;
+
+        if (!isTransactionVoidable) {
+            cardDao.setAmount(cardDao.getAmount().add(transactionAmount));
+        }
+        transactionDaoActive.setStatusTransactionDao(getStatusTransactionDao(transactionStatus));
         try {
-            boolean isTransactionVoidable = (!(cardDao.getStatus() == statusDao)
-                    || (cardDao.getExpirationDate().isBefore(LocalDate.now()))
-                    || (isDateCompareForAnnulation(transactionDaoActive.getCreationDateTime())));
-
-            BigDecimal transactionAmount = transactionDaoActive.getAmountTransaction();
-            String transactionStatus = isTransactionVoidable ? APROBADO : ANULADA;
-
-            if (!isTransactionVoidable) {
-                cardDao.setAmount(cardDao.getAmount().add(transactionAmount));
-            }
-            transactionDaoActive.setStatusTransactionDao(getStatusTransactionDao(transactionStatus));
             transactionRepository.save(transactionDaoActive);
-
         } catch (Exception exception) {
             throw new DataBaseException(ERROR_SAVE);
         }

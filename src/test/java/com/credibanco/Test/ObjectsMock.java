@@ -1,6 +1,8 @@
 package com.credibanco.Test;
 
 import com.credibanco.Test.model.auth.Role;
+import com.credibanco.Test.model.auth.UserRefresh;
+import com.credibanco.Test.model.auth.UserRegister;
 import com.credibanco.Test.model.dao.CardDao;
 import com.credibanco.Test.model.dao.ProductTypeDao;
 import com.credibanco.Test.model.dao.StatusDao;
@@ -11,6 +13,8 @@ import com.credibanco.Test.model.dto.CardDto;
 import com.credibanco.Test.model.dto.CardRechargeDto;
 import com.credibanco.Test.model.dto.ProductDto;
 import com.credibanco.Test.model.dto.PurchaseDto;
+import com.credibanco.Test.model.dto.TransactionDto;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -35,7 +39,7 @@ public class ObjectsMock {
         return Optional.of(UserDao.builder()
                 .id(1L)
                 .fullName("Full name")
-                .identificationNumber("10101010101")
+                .identificationNumber(BCrypt.hashpw("101010", BCrypt.gensalt()))
                 .role(Role.USER)
                 .username("User name")
                 .build());
@@ -75,6 +79,7 @@ public class ObjectsMock {
                 .status(BLOQUEAR)
                 .build());
     }
+
     public static Optional<StatusTransactionDao> StatusTransactionDaoApproveComplete() {
         return Optional.of(StatusTransactionDao.builder()
                 .id(1L)
@@ -91,12 +96,14 @@ public class ObjectsMock {
                 .status(statusDaoActiveComplete().get())
                 .build();
     }
+
     public static TransactionDao transactionDaoComplete() {
         return TransactionDao.builder()
                 .id(1L)
                 .transactionId("10101010101")
                 .amountTransaction(BigDecimal.TEN)
                 .creationDateTime(new Date())
+                .cardDaoSet(cardDaoWithAmountComplete())
                 .build();
     }
 
@@ -105,6 +112,16 @@ public class ObjectsMock {
                 .id(1L)
                 .numberCard(1010103577751633L)
                 .expirationDate(LocalDate.now().plusYears(3))
+                .amount(BigDecimal.valueOf(1000L))
+                .status(statusDaoActiveComplete().get())
+                .build();
+    }
+
+    public static CardDao cardDaoWithAmountAndDateWrongComplete() {
+        return CardDao.builder()
+                .id(1L)
+                .numberCard(1010103577751633L)
+                .expirationDate(LocalDate.now().minusYears(3))
                 .amount(BigDecimal.valueOf(1000L))
                 .status(statusDaoActiveComplete().get())
                 .build();
@@ -127,6 +144,43 @@ public class ObjectsMock {
         return PurchaseDto.builder()
                 .cardId("1010103577751633")
                 .price(BigDecimal.TEN)
+                .build();
+    }
+
+    public static PurchaseDto purchaseBigPriceDtoComplete() {
+        return PurchaseDto.builder()
+                .cardId("1010103577751633")
+                .price(new BigDecimal(10000))
+                .build();
+    }
+
+    public static TransactionDto transactionDtoComplete() {
+        return TransactionDto.builder()
+                .cardId("1010103577751633")
+                .transactionId("123321321")
+                .build();
+    }
+
+    public static UserRefresh UserRefreshDtoComplete() {
+        return UserRefresh.builder()
+                .userName("user name")
+                .identificationNumber("identification")
+                .build();
+    }
+
+    public static UserRegister userRegisterDtoComplete() {
+        return UserRegister.builder()
+                .fullName("full name")
+                .userName("user name")
+                .identificationNumber("10101010101")
+                .build();
+    }
+
+    public static UserRegister userRegisterSameIdDtoComplete() {
+        return UserRegister.builder()
+                .fullName("full name")
+                .userName("user name")
+                .identificationNumber("101010")
                 .build();
     }
 
