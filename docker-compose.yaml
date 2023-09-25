@@ -5,7 +5,7 @@ services:
     container_name: java_app
     image: andresvilllamizar11/credibancotest-java-app:1.0.0
     ports:
-      - "8080:8080"
+      - "80:8080"
     environment:
       - DATABASE_URL=jdbc:postgresql://java_db:5432/postgres
       - DATABASE_USERNAME=postgres
